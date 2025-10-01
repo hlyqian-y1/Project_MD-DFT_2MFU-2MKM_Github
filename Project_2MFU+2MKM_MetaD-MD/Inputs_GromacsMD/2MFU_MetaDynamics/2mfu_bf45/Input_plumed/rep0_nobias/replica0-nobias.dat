@@ -1,0 +1,9 @@
+# PLUMED input file name: plumed_nobias.dat
+# The working pathway for this file should be at the level in the 'Project_2mfu' folder
+
+# Reference structure inputs and atom index, from Gromacs MD simulations
+MOLINFO STRUCTURE=2mfu.pdb
+WHOLEMOLECULES ENTITY0=1-683 
+RANDOM_EXCHANGES
+
+# END metadynamics parameters

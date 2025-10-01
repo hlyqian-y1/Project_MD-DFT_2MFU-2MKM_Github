@@ -1,0 +1,86 @@
+# PLUMED input file name: plumed_2CV_2mfu_5primetriplex.dat
+# The working pathway for this file should be at the level in the 'Project_2mfu' folder
+# Rebuilt free energy surface only. 
+
+# Reference structure inputs and atom index, from Gromacs MD simulations
+MOLINFO STRUCTURE=2mfu.pdb
+WHOLEMOLECULES ENTITY0=1-683 
+
+# 1. Define centre of C4-C5 on guanosine stem (NO 4th Gs, G19-G20 excluded)
+# 6 in total: 
+G3_cm: CENTER ATOMS=90,80
+G4_cm: CENTER ATOMS=123,113
+
+G9_cm: CENTER ATOMS=285,275
+G10_cm: CENTER ATOMS=318,308
+
+G14_cm: CENTER ATOMS=448,438
+G15_cm: CENTER ATOMS=481,471
+
+#G19_cm: CENTER ATOMS=610,600
+#G20_cm: CENTER ATOMS=643,633
+
+# 2. Define the distance between mass center of heavy atoms on two nucleobases. (NO 4th Gs, G19-G20 excluded)
+r_34: DISTANCE ATOMS=G3_cm,G4_cm
+
+r_910: DISTANCE ATOMS=G9_cm,G10_cm
+
+r_1415: DISTANCE ATOMS=G14_cm,G15_cm
+
+#r_1920: DISTANCE ATOMS=G19_cm,G20_cm
+
+# 3. Define Stacking distance: Definition of Rational Switching functions fij. (NO 4th Gs, G19-G20 excluded)
+# f_ij: MATHEVAL ARG=r_ij FUNC=1/(1+exp(parameter*(x-rcutoff))) PERIODIC=NO 
+
+f_34: COORDINATION GROUPA=G3_cm GROUPB=G4_cm R_0=0.52
+
+f_910: COORDINATION GROUPA=G9_cm GROUPB=G10_cm R_0=0.52
+
+f_1415: COORDINATION GROUPA=G14_cm GROUPB=G15_cm R_0=0.52
+
+#f_1920: COORDINATION GROUPA=G19_cm GROUPB=G20_cm R_0=0.52
+
+# 4. Define the distance for Hoogsteen base pairing between two heavy atoms of inter-residues, one value for each (NO 4th Gs, G19-G20 excluded)
+# d_NN_ij: Distance between inter-residue N7-N1; 
+
+d_NN_310: DISTANCE ATOMS=79,311
+d_NN_1014: DISTANCE ATOMS=307,441
+#d_NN_1419: DISTANCE ATOMS=437,603
+#d_NN_193: DISTANCE ATOMS=599,83
+#d_NN_420: DISTANCE ATOMS=112,636
+#d_NN_2015: DISTANCE ATOMS=632,474
+d_NN_159: DISTANCE ATOMS=470,278
+d_NN_94: DISTANCE ATOMS=274,116
+
+# 5. Normalize the Hoogsteen base pair between two heavy atoms of inter-residues
+# hb_NN_ij is coordinate number for each Hoogsteen base pairs N7-N1 
+# hb_NN_ij: MATHEVAL ARG=d_NN_ij FUNC=1/(1+exp(parameter*(x-dcutoff))) PERIODIC=NO 
+
+hb_NN_310: COORDINATION GROUPA=79 GROUPB=311 R_0=0.50
+hb_NN_1014: COORDINATION GROUPA=307 GROUPB=441 R_0=0.50
+#hb_NN_1419: COORDINATION GROUPA=437 GROUPB=603 R_0=0.50
+#hb_NN_193: COORDINATION GROUPA=599 GROUPB=83 R_0=0.50
+#hb_NN_420: COORDINATION GROUPA=112 GROUPB=636 R_0=0.50
+#hb_NN_2015: COORDINATION GROUPA=632 GROUPB=474 R_0=0.50
+hb_NN_159: COORDINATION GROUPA=470 GROUPB=278 R_0=0.50
+hb_NN_94: COORDINATION GROUPA=274 GROUPB=116 R_0=0.50
+
+# 10. Two coordinate number of CV values.
+# Two CVs are the sum of each value of base stacking / Hoogsteen base pairs
+
+# Global base stacking distance betweens heavy atoms of bases, center of mass, 6 guanosine, ranging from 0-3 (NO 4th Gs, G19-G20)
+COMBINE ...
+LABEL=Pi_core
+ARG=f_34,f_910,f_1415
+COEFFICIENTS=1.0,1.0,1.0
+PERIODIC=NO
+...
+PRINT ARG=Pi_core FILE=./2D-FreeEnergy/b1_COLVAR.out
+
+# Global value of Hoogsteen base pair, ranging from 0-4
+Hg_core: COMBINE ...
+ARG=hb_NN_310,hb_NN_1014,hb_NN_159,hb_NN_94
+COEFFICIENTS=1.0,1.0,1.0,1.0
+PERIODIC=NO
+...
+PRINT ARG=Hg_core FILE=./2D-FreeEnergy/b2_COLVAR.out

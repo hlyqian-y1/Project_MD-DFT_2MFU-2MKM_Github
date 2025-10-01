@@ -1,0 +1,70 @@
+# PLUMED input file name: plumed_2mkm_2CV.dat
+# The working pathway for this file should be at the level in the 'Project_2mkm' folder
+# Used to rebuilt free energy surface only.
+
+# Reference structure inputs and atom index, from Gromacs MD simulations
+MOLINFO STRUCTURE=2mkm.pdb
+WHOLEMOLECULES ENTITY0=1-358 
+
+# 1. Define centre of C4-C5 on guanosine stem 
+# 3 in total: 
+
+G1_cm: CENTER ATOMS=25,15
+G2_cm: CENTER ATOMS=58,48
+
+G5_cm: CENTER ATOMS=155,145
+G6_cm: CENTER ATOMS=188,178
+
+G10_cm: CENTER ATOMS=318,308
+G11_cm: CENTER ATOMS=351,341
+
+# 2. Define the distance between mass center of heavy atoms on two nucleobases. 
+r_1_2: DISTANCE ATOMS=G1_cm,G2_cm
+r_5_6: DISTANCE ATOMS=G5_cm,G6_cm
+r_10_11: DISTANCE ATOMS=G10_cm,G11_cm
+
+# 3. Define Stacking distance: Definition of Rational Switching functions fij.
+# f_ij: MATHEVAL ARG=r_ij FUNC=1/(1+exp(parameter*(x-rcutoff))) PERIODIC=NO 
+
+f_1_2: COORDINATION GROUPA=G1_cm GROUPB=G2_cm R_0=0.53
+f_5_6: COORDINATION GROUPA=G5_cm GROUPB=G6_cm R_0=0.53
+f_10_11: COORDINATION GROUPA=G10_cm GROUPB=G11_cm R_0=0.53
+
+# 4. Define the distance for Hoogsteen base pairing between two heavy atoms of inter-residues, one value for each
+# d_NN_ij: Distance between inter-residue N7-N1; 
+
+d_NN_10_6: DISTANCE ATOMS=307,181
+d_NN_6_1: DISTANCE ATOMS=177,18
+d_NN_2_5: DISTANCE ATOMS=47,148
+d_NN_5_11: DISTANCE ATOMS=144,344
+
+# 5. Normalize the Hoogsteen base pair between two heavy atoms of inter-residues
+# hb_NN_ij is coordinate number for each Hoogsteen base pairs N7-N1 
+# hb_NN_ij: MATHEVAL ARG=d_NN_ij FUNC=1/(1+exp(parameter*(x-dcutoff))) PERIODIC=NO 
+
+hb_NN_10_6: COORDINATION GROUPA=307 GROUPB=181 R_0=0.57
+hb_NN_6_1: COORDINATION GROUPA=177 GROUPB=18 R_0=0.57
+hb_NN_2_5: COORDINATION GROUPA=47 GROUPB=148 R_0=0.57
+hb_NN_5_11: COORDINATION GROUPA=144 GROUPB=344 R_0=0.57
+
+# 9. Two coordinate number of CV values for the global G-quadruplex stacking state, GBAs, and Hoogsteen base pair. 
+# Three CVs are the sum of each value of base stacking / GBA distance factor / base pairs
+
+# Global base stacking distance betweens heavy atoms of bases, center of mass, 6 guanosine, ranging from 0-3
+COMBINE ...
+LABEL=Pi_core
+ARG=f_1_2,f_5_6,f_10_11
+COEFFICIENTS=1.0,1.0,1.0
+PERIODIC=NO
+...
+PRINT ARG=Pi_core FILE=./2D-FreeEnergy/b1_COLVAR.out
+
+# Global value of Hoogsteen base pair, ranging from 0-4
+Hg_core: COMBINE ...
+ARG=hb_NN_10_6,hb_NN_6_1,hb_NN_2_5,hb_NN_5_11
+COEFFICIENTS=1.0,1.0,1.0,1.0
+PERIODIC=NO
+...
+PRINT ARG=Hg_core FILE=./2D-FreeEnergy/b2_COLVAR.out
+
+# End input file

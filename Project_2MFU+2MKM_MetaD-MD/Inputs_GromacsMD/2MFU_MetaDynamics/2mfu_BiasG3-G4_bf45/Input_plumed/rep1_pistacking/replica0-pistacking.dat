@@ -1,0 +1,74 @@
+# PLUMED input file name: plumed_pistack_2mfu.dat
+# The working pathway for this file should be at the level in the 'Project_2mfu' folder
+
+# Reference structure inputs and atom index, from Gromacs MD simulations
+MOLINFO STRUCTURE=2mfu.pdb
+WHOLEMOLECULES ENTITY0=1-683 
+RANDOM_EXCHANGES
+
+# 1. Define centre of C4-C5 on guanosine stem 
+G3_cm: CENTER ATOMS=90,80
+G4_cm: CENTER ATOMS=123,113
+
+#G9_cm: CENTER ATOMS=285,275
+#G10_cm: CENTER ATOMS=318,308
+
+#G14_cm: CENTER ATOMS=448,438
+#G15_cm: CENTER ATOMS=481,471
+
+#G19_cm: CENTER ATOMS=610,600
+#G20_cm: CENTER ATOMS=643,633
+
+
+# 2. Define the distance between mass center of heavy atoms on two nucleobases.
+r_34: DISTANCE ATOMS=G3_cm,G4_cm
+
+#r_910: DISTANCE ATOMS=G9_cm,G10_cm
+
+#r_1415: DISTANCE ATOMS=G14_cm,G15_cm
+
+#r_1920: DISTANCE ATOMS=G19_cm,G20_cm
+
+
+# 3. Define Stacking distance: Definition of Rational switching functions.
+# f_ij: MATHEVAL ARG=r_ij FUNC=1/(1+exp(parameter*(x-rcutoff))) PERIODIC=NO 
+
+f_34: COORDINATION GROUPA=G3_cm GROUPB=G4_cm R_0=0.52
+
+#f_910: COORDINATION GROUPA=G9_cm GROUPB=G10_cm R_0=0.52
+
+#f_1415: COORDINATION GROUPA=G14_cm GROUPB=G15_cm R_0=0.52
+
+#f_1920: COORDINATION GROUPA=G19_cm GROUPB=G20_cm R_0=0.52
+
+
+# 4. Coordinate number of CV values 
+# 1 CV is the sum of each value of base stacking.
+
+# Global base stacking distance betweens heavy atoms of bases, center of mass, 2 guanosine, ranging from 0-1
+COMBINE ...
+LABEL=Pi_core
+ARG=f_34
+COEFFICIENTS=1.0
+PERIODIC=NO
+...
+
+# End input file
+
+# METAD
+# rep1: Pi-stacking CV for MetaDynamics runs
+metad_Pi: METAD ...
+ARG=Pi_core,
+SIGMA=0.05 # Gaussian width 0.05
+HEIGHT=2.5 # Initial height equal to 2.5 KJ/mol
+PACE=500 # Deposition Gaussian potential each 1 ps / 1000 fs (500 steps * 2fs)
+BIASFACTOR=45 # Biasfactor 45
+TEMP=300 # Temperature 300 K 
+FILE=CV1_HILLS
+GRID_MIN=0 
+GRID_MAX=1
+... 
+PRINT ARG=Pi_core,metad_Pi.bias FILE=Pi_COLVAR.out STRIDE=2500
+
+# END metadynamics parameters
+

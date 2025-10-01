@@ -1,0 +1,62 @@
+# PLUMED input file name: plumed_Hoogsteen_bp.dat
+# The working pathway for this file should be at the level in the 'MetaDynamics' folder
+
+# Reference structure inputs and atom index, from Gromacs MD simulations
+MOLINFO STRUCTURE=2mfu.pdb
+WHOLEMOLECULES ENTITY0=1-683 
+RANDOM_EXCHANGES
+
+# 6. Define the distance for Hoogsteen base pairing between two heavy atoms of inter-residues, one value for each
+# d_NN_ij: Distance between inter-residue N7-N1; 
+
+d_NN_310: DISTANCE ATOMS=79,311
+d_NN_1014: DISTANCE ATOMS=307,441
+d_NN_1419: DISTANCE ATOMS=437,603
+d_NN_193: DISTANCE ATOMS=599,83
+d_NN_420: DISTANCE ATOMS=112,636
+d_NN_2015: DISTANCE ATOMS=632,474
+d_NN_159: DISTANCE ATOMS=470,278
+d_NN_94: DISTANCE ATOMS=274,116
+
+# 7. Normalize the Hoogsteen base pair between two heavy atoms of inter-residues
+# hb_NN_ij is coordinate number for each Hoogsteen base pairs N7-N1 
+# hb_NN_ij: MATHEVAL ARG=d_NN_ij FUNC=1/(1+exp(parameter*(x-dcutoff))) PERIODIC=NO 
+
+hb_NN_310: COORDINATION GROUPA=79 GROUPB=311 R_0=0.50
+hb_NN_1014: COORDINATION GROUPA=307 GROUPB=441 R_0=0.50
+hb_NN_1419: COORDINATION GROUPA=437 GROUPB=603 R_0=0.50
+hb_NN_193: COORDINATION GROUPA=599 GROUPB=83 R_0=0.50
+hb_NN_420: COORDINATION GROUPA=112 GROUPB=636 R_0=0.50
+hb_NN_2015: COORDINATION GROUPA=632 GROUPB=474 R_0=0.50
+hb_NN_159: COORDINATION GROUPA=470 GROUPB=278 R_0=0.50
+hb_NN_94: COORDINATION GROUPA=274 GROUPB=116 R_0=0.50
+
+# 8. Coordinate number of CV values.
+# 1 CV is the sum of each value of base stacking.
+
+# Global value of Hoogsteen base pair, ranging from 0-8
+Hg_core: COMBINE ...
+ARG=hb_NN_310,hb_NN_1014,hb_NN_1419,hb_NN_193,hb_NN_420,hb_NN_2015,hb_NN_159,hb_NN_94
+COEFFICIENTS=1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+PERIODIC=NO
+...
+
+# End input file
+
+# METAD
+# rep2: Hoogsteen CVs for MetaDynamics runs
+metad_Hg: METAD ...
+ARG=Hg_core
+SIGMA=0.05 # Gaussian width 0.005
+HEIGHT=2.5 # Initial height equal to 2.5 KJ/mol
+PACE=500 # Deposition Gaussian potential each 1 ps / 1000 fs (500 steps * 2fs)
+BIASFACTOR=40 # Biasfactor 40
+TEMP=300 # Temperature 300 K 
+FILE=CV2_HILLS
+GRID_MIN=0 
+GRID_MAX=8
+... 
+PRINT ARG=Hg_core,metad_Hg.bias FILE=Hg_COLVAR.out STRIDE=2500
+
+# END metadynamics parameters
+
